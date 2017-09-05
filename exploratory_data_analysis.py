@@ -98,7 +98,12 @@ for s in stats:
 playersPG['fgPct'] = (np.divide(players['fgMade'], players['fgAttempted'])*100).round(2)
 playersPG['ftPct'] = (np.divide(players['ftMade'], players['ftAttempted'])*100).round(2)
 playersPG['threePct'] = (np.divide(players['threeMade'], players['threeAttempted'])*100).round(2)
-print(playersPG.head(10))
+print(playersPG.head(10), '\n')
+
+# summary statistics of player stats
+sumStats = playersPG.iloc[:,2:].describe()
+print(sumStats.round(2)) # exclude playerID and year
+sumStats.T.to_csv('player_stats_summary.csv', index = True)
 
 # player per game stats plots
 def plot_hist(series):
@@ -149,15 +154,11 @@ def plot_pg_stat(s1, s2, annualMean = False, regLine = False,
         ax.set_ylabel(s2 + ' per game', fontsize = 16)
     plt.show()
 
-#plot_hist('year')
-#plot_hist('minutes')
 plot_hist('points')
 plot_hist('assists')
 plot_hist('rebounds')
 plot_pg_stat('year', 'minutes', annualMean = True)
 plot_pg_stat('year', 'points', annualMean = True)
-plot_pg_stat('year', 'fgPct', annualMean = True)
-plot_pg_stat('year', 'ftPct', annualMean = True)
 plot_pg_stat('year', 'threePct', annualMean = True)
 plot_pg_stat('minutes', 'points', regLine = True)
 plot_pg_stat('minutes', 'points', logx = True, logy = True)
@@ -169,5 +170,8 @@ allNBA = awards[awards['award'].str.contains('All-NBA')]
 
 # select only players awarded regular season MVP
 seasonMVP = awards[awards['award'] == 'Most Valuable Player']
+
+# select only players awarded Defensive Player of the Year
+seasonDPY = awards[awards['award'] == 'Defensive Player of the Year']
 
 # join playersPG and allNBA according to playerID and year
