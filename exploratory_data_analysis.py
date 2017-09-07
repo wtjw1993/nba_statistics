@@ -200,14 +200,11 @@ sns.heatmap(corMatrix, ax = ax, vmin = -1, vmax = 1, mask = np.zeros_like(corMat
 plt.show()
 
 # plotting player stats grouped by players with awards and players without awards
-def stats_awards_boxplot(var, award = "allNBA"):
-    # var is the variable of interest
-    # award is the name of the award to categorise by (either allNBA, MVP or DPY)
-    # award defaults to allNBA if not specified
-    # all variables take strings as inputs
+def allNBA_stats_boxplot(var):
+    # var is the variable of interest, take a string as inputs
     fig, ax = plt.subplots(figsize = (8,6), dpi = 100)
-    sns.boxplot(x = award, y = var, data = playersMerged, palette = "Set1")
-    ax.set_xlabel(award, fontsize = 16)
+    sns.boxplot(x = 'allNBA', y = var, data = playersMerged, palette = "Set1")
+    ax.set_xlabel('allNBA', fontsize = 16)
     if 'Pct' in var:
         ax.set_ylabel(var, fontsize = 16)
     elif var == 'GP':
@@ -224,11 +221,11 @@ for s in stats:
     elif 'Made' in s:
         continue    # ignore fg, fg, three made (see below)
     else:
-        stats_awards_boxplot(s)
+        allNBA_stats_boxplot(s)
 
-stats_awards_boxplot('fgPct')
-stats_awards_boxplot('ftPct')
-stats_awards_boxplot('threePct')
+allNBA_stats_boxplot('fgPct')
+allNBA_stats_boxplot('ftPct')
+allNBA_stats_boxplot('threePct')
 
 # number of players with each award in each year
 playersMerged[playersMerged['allNBA'] == 1].groupby('year')['allNBA'].sum()
