@@ -20,7 +20,7 @@ awards = awards[awards['lgID'] == 'NBA']
 
 # remove columns not relevant to research question
 players = players.drop(['stint','tmID','lgID','GS','note'], axis=1)
-awards = awards.drop(['lgID','note'], axis=1)
+awards = awards.drop(['lgID','note', 'pos'], axis=1)
 
 # remove variables corresponding to postseason stats
 cols = [c for c in players.columns if c[:4] != 'Post']
@@ -32,7 +32,7 @@ players = players[players['GP'] != 0]
 # checking for sum of stats by year that equal zero
 stats = players.columns[3:]   # identify all stats from players data frame
 yearStats = players.groupby('year')[stats].sum() # sum stats by year
-print(yearStats.head(10), '\n')
+print(yearStats.head(), '\n')
 
 # visualising sum of selected stats by year
 def plot_stats_by_year(statistic):
@@ -76,7 +76,7 @@ plt.show()
 yearStats = yearStats[(yearStats.T != 0).all()] # remove rows with zeros
 print(yearStats.head(10), '\n')
 
-# filter players and awards datasets to only include years with complete stats records
+# filter players and awards datasets to only include years with complete stats
 players = players[players['year'].isin(yearStats.index)]
 awards = awards[awards['year'].isin(yearStats.index)]
 
@@ -101,15 +101,14 @@ playersPG['threePct'] = (np.divide(players['threeMade'], players['threeAttempted
 print(playersPG.head(10), '\n')
 
 # summary statistics of player stats
-sumStats = playersPG.iloc[:,2:].describe()
-print(sumStats.round(2)) # exclude playerID and year
-sumStats.T.to_csv('player_stats_summary.csv', index = True)
+summaryStats = playersPG.iloc[:,2:].describe()
+print(summaryStats.round(2)) # exclude playerID and year
+summaryStats.T.to_csv('player_stats_summary.csv', index = True)
 
 # player per game stats plots
 def plot_hist(series):
     fig, ax = plt.subplots(figsize = (8,6), dpi = 100)
-    sns.distplot(playersPG[series], kde = False, color = 'blue',
-                 hist_kws = {'alpha': 0.8, 'edgecolor': 'black'})
+    sns.distplot(playersPG[series], kde = False, color = 'blue', hist_kws = {'alpha': 0.8, 'edgecolor': 'black'})
     if series == 'year':
         ax.set_xlabel(series, fontsize = 16)
     elif 'Pct' in series:
@@ -118,8 +117,7 @@ def plot_hist(series):
         ax.set_xlabel(series + ' per game', fontsize = 16)
     plt.show()
 
-def plot_pg_stat(s1, s2, annualMean = False, regLine = False,
-                 logx = False, logy = False, alpha = 0.2):
+def plot_pg_stat(s1, s2, annualMean = False, regLine = False, logx = False, logy = False, alpha = 0.2):
     # annualMean specifies if the avg stat per year will be added to the plot
     # regLIne specifies if a linear regression line is to be plotted
     # logx and logy specify if whether or not to take the log of those variables
@@ -131,17 +129,17 @@ def plot_pg_stat(s1, s2, annualMean = False, regLine = False,
         temp[s2] = np.log(temp[s2])
     fig, ax = plt.subplots(figsize = (8,6), dpi = 100)
     if regLine:
-        sns.regplot(s1, s2, data = playersPG, ci = None, color = '#ff7f00',
-                    scatter_kws = {'alpha': alpha, 'color': 'blue'})
+        sns.regplot(s1, s2, data = temp, ci = None, color = '#ff7f00', scatter_kws = {'alpha': alpha, 'color': 'blue'})
     else:
         ax.scatter(temp[s1], temp[s2], alpha = alpha, color = 'blue')
     if s1 == 'year' and annualMean:
-        ax.plot(sorted(playersPG[s1].unique()), playersPG.groupby(s1)[s2].mean(),
-                color = 'red')
+        ax.plot(sorted(temp[s1].unique()), temp.groupby(s1)[s2].mean(), color = 'red')
     if logx:
         ax.set_xlabel('log (' + s1 + ')', fontsize = 16)
     elif s1 == 'year':
         ax.set_xlabel(s1, fontsize = 16)
+    elif s1 == 'GP':
+        ax.set_xlabel('games played', fontsize = 16)
     elif 'Pct' in s1:
         ax.set_xlabel(s1, fontsize = 16)
     else:
@@ -162,8 +160,9 @@ plot_pg_stat('year', 'points', annualMean = True)
 plot_pg_stat('year', 'threePct', annualMean = True)
 plot_pg_stat('minutes', 'points', regLine = True)
 plot_pg_stat('minutes', 'points', logx = True, logy = True)
-plot_pg_stat('fgPct', 'points')
 plot_pg_stat('turnovers', 'assists', regLine = True)
+plot_pg_stat('fgPct', 'points')
+plot_pg_stat('GP', 'fgPct')
 
 # select only All-NBA Team awards
 allNBA = awards[awards['award'].str.contains('All-NBA')]
@@ -175,3 +174,65 @@ seasonMVP = awards[awards['award'] == 'Most Valuable Player']
 seasonDPY = awards[awards['award'] == 'Defensive Player of the Year']
 
 # join playersPG and allNBA according to playerID and year
+playersMerged = pd.merge(playersPG, seasonMVP, how='left', on=['playerID','year'])
+playersMerged.rename(columns={'award': 'MVP'}, inplace=True)
+playersMerged = pd.merge(playersMerged, seasonDPY, how='left', on=['playerID','year'])
+playersMerged.rename(columns={'award': 'DPY'}, inplace=True)
+playersMerged = pd.merge(playersMerged, allNBA, how='left', on=['playerID','year'])
+playersMerged.rename(columns={'award': 'allNBA'}, inplace=True)
+
+# determine total number of players with awards in the dataset
+print(playersMerged['allNBA'].value_counts(), '\n')
+print(playersMerged['MVP'].value_counts(), '\n')
+print(playersMerged['DPY'].value_counts())
+
+# convert awards columns to categorial (1: player received award, 0: no award)
+playersMerged['allNBA'] = playersMerged['allNBA'].notnull().astype(int)
+playersMerged['MVP'] = playersMerged['MVP'].notnull().astype(int)
+playersMerged['DPY'] = playersMerged['DPY'].notnull().astype(int)
+
+# visualise correlation matrix
+corMatrix = playersMerged.iloc[:,2:].corr()
+fig, ax = plt.subplots(figsize = (8,6), dpi = 100)
+sns.heatmap(corMatrix, ax = ax, vmin = -1, vmax = 1, mask = np.zeros_like(corMatrix, dtype = np.bool),
+            cmap = sns.diverging_palette(220, 20, as_cmap = True), square = True)
+#heatmap code source: https://stackoverflow.com/a/42977946/8452935
+plt.show()
+
+# plotting player stats grouped by players with awards and players without awards
+def stats_awards_boxplot(var, award = "allNBA"):
+    # var is the variable of interest
+    # award is the name of the award to categorise by (either allNBA, MVP or DPY)
+    # award defaults to allNBA if not specified
+    # all variables take strings as inputs
+    fig, ax = plt.subplots(figsize = (8,6), dpi = 100)
+    sns.boxplot(x = award, y = var, data = playersMerged, palette = "Set1")
+    ax.set_xlabel(award, fontsize = 16)
+    if 'Pct' in var:
+        ax.set_ylabel(var, fontsize = 16)
+    elif var == 'GP':
+        ax.set_ylabel('games played', fontsize = 16)
+    else:
+        ax.set_ylabel(var + ' per game', fontsize = 16)
+    plt.show()
+
+for s in stats:
+    if 'rebounds' in s.lower():
+        continue    # ignore rebounds (see below)
+    elif 'Attempted' in s:
+        continue    # ignore fg, fg, three attempts (see below)
+    elif 'Made' in s:
+        continue    # ignore fg, fg, three made (see below)
+    else:
+        stats_awards_boxplot(s)
+
+stats_awards_boxplot('fgPct')
+stats_awards_boxplot('ftPct')
+stats_awards_boxplot('threePct')
+
+# number of players with each award in each year
+playersMerged[playersMerged['allNBA'] == 1].groupby('year')['allNBA'].sum()
+playersMerged[playersMerged['MVP'] == 1].groupby('year')['MVP'].sum()
+playersMerged[playersMerged['DPY'] == 1].groupby('year')['DPY'].sum()
+# this has to be addressed before building the model
+# consider merging awards to players dataset before computing per game averages
