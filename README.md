@@ -3,4 +3,8 @@ Exploratory data analysis of NBA player stats using python. This process is to b
 
 The data was downloaded from Open Source Sports at http://www.opensourcesports.com/basketball/. Currently, only data from basketball_players.csv and basketball_awards_players.csv have been used.
 
+To-do:
+• Train a logistic regression model
+• Make predictions using a new set of player statistics
+
 Author: Jian Wei Tan
