@@ -185,34 +185,41 @@ def plot_pg_stat(s1, s2, annualMean = False, regLine = False,
 #plot_pg_stat('fgPct', 'points')
 #plot_pg_stat('GP', 'fgPct')
 
-# select only All-NBA Team awards
+# select only All-NBA Team awards and join to player stats
 allNBA = awards[awards['award'].str.contains('All-NBA')]
-
-# select only players awarded regular season MVP
-seasonMVP = awards[awards['award'] == 'Most Valuable Player']
-
-# select only players awarded Defensive Player of the Year
-seasonDPY = awards[awards['award'] == 'Defensive Player of the Year']
-
-# join playersPG and allNBA according to playerID and year
-playersMerged = pd.merge(playersPG, seasonMVP, how='left', on=['playerID','year'])
-playersMerged.rename(columns={'award': 'MVP'}, inplace=True)
-playersMerged = pd.merge(playersMerged, seasonDPY, how='left',
-                         on=['playerID','year'])
-playersMerged.rename(columns={'award': 'DPY'}, inplace=True)
-playersMerged = pd.merge(playersMerged, allNBA, how='left',
+playersMerged = pd.merge(playersPG, allNBA, how='left',
                          on=['playerID','year'])
 playersMerged.rename(columns={'award': 'allNBA'}, inplace=True)
 
-# determine total number of players with awards in the dataset
-print(playersMerged['allNBA'].value_counts(), '\n')
-print(playersMerged['MVP'].value_counts(), '\n')
-print(playersMerged['DPY'].value_counts())
+# select only players awarded regular season MVP and join to player stats
+seasonMVP = awards[awards['award'] == 'Most Valuable Player']
+playersMerged = pd.merge(playersMerged, seasonMVP, how='left',
+                         on=['playerID','year'])
+playersMerged.rename(columns={'award': 'MVP'}, inplace=True)
+
+#select only players awarded Defensive Player of the Year and join to player stats
+seasonDPY = awards[awards['award'] == 'Defensive Player of the Year']
+playersMerged = pd.merge(playersMerged, seasonDPY, how='left',
+                         on=['playerID','year'])
+playersMerged.rename(columns={'award': 'DPY'}, inplace=True)
+
+# number of players with each award in each year
+print('\nAll-NBA')
+print(playersMerged[playersMerged['allNBA'] == 1].groupby('year')['allNBA'].sum())
+print('\nMVP')
+print(playersMerged[playersMerged['MVP'] == 1].groupby('year')['MVP'].sum())
+print('\nDefensive Player of the Year')
+print(playersMerged[playersMerged['DPY'] == 1].groupby('year')['DPY'].sum())
 
 # convert awards columns to categorial (1: player received award, 0: no award)
 playersMerged['allNBA'] = playersMerged['allNBA'].notnull().astype(int)
 playersMerged['MVP'] = playersMerged['MVP'].notnull().astype(int)
 playersMerged['DPY'] = playersMerged['DPY'].notnull().astype(int)
+
+# determine total number of players with awards in the dataset
+print(playersMerged['allNBA'].value_counts(), '\n')
+print(playersMerged['MVP'].value_counts(), '\n')
+print(playersMerged['DPY'].value_counts())
 
 # visualise correlation matrix
 corMatrix = playersMerged.iloc[:,2:].corr()
@@ -249,11 +256,3 @@ def allNBA_stats_boxplot(var):
 #allNBA_stats_boxplot('fgPct')
 #allNBA_stats_boxplot('ftPct')
 #allNBA_stats_boxplot('threePct')
-
-# number of players with each award in each year
-print('\nAll-NBA')
-print(playersMerged[playersMerged['allNBA'] == 1].groupby('year')['allNBA'].sum())
-print('\nMVP')
-print(playersMerged[playersMerged['MVP'] == 1].groupby('year')['MVP'].sum())
-print('\nDefensive Player of the Year')
-print(playersMerged[playersMerged['DPY'] == 1].groupby('year')['DPY'].sum())
