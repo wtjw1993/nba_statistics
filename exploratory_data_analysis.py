@@ -8,6 +8,11 @@ sns.set_style('darkgrid')
 # read data (source: www.opensourcesports.com/basketball/)
 awards = pd.read_csv('basketball_awards_players.csv')
 players = pd.read_csv('basketball_players.csv', low_memory = False)
+playerPos = pd.read_csv('basketball_master.csv')[['bioID','pos']].dropna()
+playerPos.columns = ['playerID', 'pos']
+# select only the first position mentioned for players who play multiple positons
+for i, pos in enumerate(playerPos['pos']):
+    playerPos['pos'].iloc[i] = pos[0]
 
 # breakdown of number of observations by league
 print(players['lgID'].value_counts(), '\n')
@@ -26,6 +31,10 @@ players = players[cols]
 
 # remove players with zero games played in any given year
 players = players[players['GP'] != 0]
+
+# remove observations with zero field goals and zero free throws attempted
+players = players[players['fgAttempted'] != 0]
+players = players[players['ftAttempted'] != 0]
 
 # checking for sum of stats by year that equal zero
 stats = players.columns[3:]   # identify all stats from players data frame
@@ -97,10 +106,12 @@ players = players.groupby(['playerID', 'year']).sum().reset_index()
 # playerID willish03 had 106 games in 2010, so his stats were checked
 print(players.loc[players['playerID'] == 'willish03',:])
 # compare stats at https://www.basketball-reference.com/players/w/willish03.html
-# remove row with IDs 12870 and 12871 due to discrepancy
-players = players.drop([12870, 12871])
-print(players.loc[players['playerID'] == 'willish03',:])
+# remove row with IDs 12542 and 12543 due to discrepancy
+players = players.drop([12542, 12543])
+print(players.loc[players['playerID'] == 'willish03',:], "\n")
 
+# add player positions
+players = pd.merge(playerPos, players, how = 'right', on = 'playerID')    
 
 # compute average stats per game
 playersPG = players.iloc[:,0:3] # select playerID, year and GP
@@ -110,11 +121,15 @@ for s in stats:
 # compute field goal, free throw and three point fg percentages
 with np.errstate(divide='ignore',  invalid='ignore'):
     playersPG['fgPct'] = (np.divide(players['fgMade'],
-             players['fgAttempted'])*100).round(2)
+             players['fgAttempted'])).round(3)
     playersPG['ftPct'] = (np.divide(players['ftMade'],
-             players['ftAttempted'])*100).round(2)
+             players['ftAttempted'])).round(3)
     playersPG['threePct'] = (np.divide(players['threeMade'],
-             players['threeAttempted'])*100).round(2)
+             players['threeAttempted'])).round(3)
+# compute eFG% = (fgMade + 0.5*(threeMade))/fgAttempted
+# source: https://www.basketball-reference.com/about/glossary.html
+playersPG['efgPct'] = (np.divide(players['fgMade'] + 0.5*players['threeMade'],
+         players['fgAttempted'])).round(3)
 print(playersPG.head(10), '\n')
 
 # summary statistics of player stats
@@ -203,13 +218,10 @@ playersMerged = pd.merge(playersMerged, seasonDPY, how='left',
                          on=['playerID','year'])
 playersMerged.rename(columns={'award': 'DPY'}, inplace=True)
 
-# number of players with each award in each year
-print('\nAll-NBA')
-print(playersMerged[playersMerged['allNBA'] == 1].groupby('year')['allNBA'].sum())
-print('\nMVP')
-print(playersMerged[playersMerged['MVP'] == 1].groupby('year')['MVP'].sum())
-print('\nDefensive Player of the Year')
-print(playersMerged[playersMerged['DPY'] == 1].groupby('year')['DPY'].sum())
+# determine total number of players with awards in the dataset
+print('\n', playersMerged['allNBA'].value_counts())
+print('\n', playersMerged['MVP'].value_counts())
+print('\n', playersMerged['DPY'].value_counts(), '\n')
 
 # convert awards columns to categorial (1: player received award, 0: no award)
 playersMerged['allNBA'] = playersMerged['allNBA'].notnull().astype(int)
@@ -217,9 +229,7 @@ playersMerged['MVP'] = playersMerged['MVP'].notnull().astype(int)
 playersMerged['DPY'] = playersMerged['DPY'].notnull().astype(int)
 
 # determine total number of players with awards in the dataset
-print(playersMerged['allNBA'].value_counts(), '\n')
-print(playersMerged['MVP'].value_counts(), '\n')
-print(playersMerged['DPY'].value_counts())
+print(playersMerged.groupby('year')['allNBA', 'MVP', 'DPY'].sum())
 
 # visualise correlation matrix
 corMatrix = playersMerged.iloc[:,2:].corr()
@@ -256,3 +266,12 @@ def allNBA_stats_boxplot(var):
 #allNBA_stats_boxplot('fgPct')
 #allNBA_stats_boxplot('ftPct')
 #allNBA_stats_boxplot('threePct')
+
+# drop fgPct and threePct in favour of eFG% to prevent multicollinearity
+playersMerged = playersMerged.drop(['fgPct', 'threePct'], axis = 1)
+
+# write data to csv files
+playersMerged.to_csv('nba_reg_season.csv', index = False)
+playersMerged.drop(['playerID', 'year', 'MVP', 'DPY'], axis = 1).to_csv('train_allNBA.csv', index = False)
+playersMerged.drop(['playerID', 'year', 'allNBA', 'DPY'], axis = 1).to_csv('train_MVP.csv', index = False)
+playersMerged.drop(['playerID', 'year', 'allNBA', 'MVP'], axis = 1).to_csv('train_DPY.csv', index = False)
