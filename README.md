@@ -5,8 +5,10 @@ The data was downloaded from Open Source Sports at http://www.opensourcesports.c
 
 To-do:
 
-• Train a logistic regression model
+• Convert player positions to dummy variables (leave C out)
 
-• Make predictions using a new set of player statistics
+• Train support vector classification model
+
+• Use decision trees and random forest models
 
 Author: Jian Wei Tan
