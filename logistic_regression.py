@@ -45,7 +45,7 @@ t0 = time.time()
 logit = LogisticRegression()
 parameters = {'C': [0.01, 0.1, 1, 10, 100, 1000], 'penalty': ['l1', 'l2'], 'class_weight': [None, 'balanced']}
 stratKFolds = StratifiedKFold(n_splits = 3)
-logitGrid = GridSearchCV(logit, parameters, scoring = 'f1', cv = stratKFolds)
+logitGrid = GridSearchCV(logit, parameters, scoring='f1', cv=stratKFolds)
 logitGrid.fit(X_train, y_train)
 t1 = time.time()
 print(logitGrid.best_params_)
@@ -68,12 +68,12 @@ print(pred2016[['Player','pos']].sort_index())
 print("\nActual 2016-17 All-NBA Team winners:\n")
 print(test2016.loc[test2016['allNBA'] == 1, ['Player','pos']])
 print("\nNumber of correct All-NBA predictions:", len(set(pred2016['Player']) & set(test2016.loc[test2016['allNBA'] == 1, 'Player'])))
-print("\nDecision threshold:", str(pred2016.iloc[14,3].round(3)))
+print("Decision threshold:", str(pred2016.iloc[14,3].round(3)))
 probs2016['Label'] = 0
 for i, label in enumerate(probs2016[1]):
     if label >= pred2016.iloc[14,3]:
         probs2016['Label'].iloc[i] = 1
-print("\nClassifier F1 score:", f1_score(test2016['allNBA'], probs2016['Label']).round(3))
+print("Classifier F1 score:", f1_score(test2016['allNBA'], probs2016['Label']).round(3))
 
 # NBA 2015-16 All-NBA Team Predictions
 probs2015 = pd.DataFrame(logitCV.predict_proba(X_test2015))
@@ -84,9 +84,9 @@ print(pred2015[['Player','pos']].sort_index())
 print("\nActual 2015-16 All-NBA Team winners:\n")
 print(test2015.loc[test2015['allNBA'] == 1, ['Player','pos']])
 print("\nNumber of correct All-NBA predictions:", len(set(pred2015['Player']) & set(test2015.loc[test2015['allNBA'] == 1, 'Player'])))
-print("\nDecision threshold:", str(pred2015.iloc[14,3].round(3)))
+print("Decision threshold:", str(pred2015.iloc[14,3].round(3)))
 probs2015['Label'] = 0
 for i, label in enumerate(probs2015[1]):
     if label >= pred2015.iloc[14,3]:
         probs2015['Label'].iloc[i] = 1
-print("\nClassifier F1 score:", f1_score(test2015['allNBA'], probs2015['Label']).round(3))
+print("Classifier F1 score:", f1_score(test2015['allNBA'], probs2015['Label']).round(3))
