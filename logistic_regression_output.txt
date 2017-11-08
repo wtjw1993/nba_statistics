@@ -1,0 +1,89 @@
+Logistic Regression
+
+{'C': 10, 'class_weight': None, 'penalty': 'l1'}
+Time taken: 43.60091185569763 seconds
+Time taken: 11.036679744720459 seconds
+
+Predicted 2016-17 All-NBA Team winners:
+
+                    Player pos
+15   Giannis Antetokounmpo   F
+65            Jimmy Butler   F
+89        DeMarcus Cousins   C
+97           Stephen Curry   G
+99           Anthony Davis   C
+107          DeMar DeRozan   G
+118           Kevin Durant   F
+171           James Harden   G
+219           LeBron James   F
+260          Kawhi Leonard   F
+265         Damian Lillard   G
+423          Isaiah Thomas   G
+432     Karl-Anthony Towns   C
+451              John Wall   G
+457      Russell Westbrook   G
+
+Actual 2016-17 All-NBA Team winners:
+
+                    Player pos
+15   Giannis Antetokounmpo   F
+65            Jimmy Butler   F
+97           Stephen Curry   G
+99           Anthony Davis   C
+107          DeMar DeRozan   G
+118           Kevin Durant   F
+154            Rudy Gobert   C
+163         Draymond Green   F
+171           James Harden   G
+219           LeBron James   F
+239         DeAndre Jordan   C
+260          Kawhi Leonard   F
+423          Isaiah Thomas   G
+451              John Wall   G
+457      Russell Westbrook   G
+
+Number of correct All-NBA predictions: 12
+Decision threshold: 0.669
+Classifier F1 score: 0.8
+
+Predicted 2015-16 All-NBA Team winners:
+
+                Player pos
+96    DeMarcus Cousins   C
+104      Stephen Curry   G
+106      Anthony Davis   C
+120     Andre Drummond   C
+125       Kevin Durant   F
+176       James Harden   G
+220       LeBron James   F
+240     DeAndre Jordan   C
+262      Kawhi Leonard   F
+265     Damian Lillard   G
+272         Kyle Lowry   G
+347         Chris Paul   G
+444       Kemba Walker   G
+445          John Wall   G
+451  Russell Westbrook   G
+
+Actual 2015-16 All-NBA Team winners:
+
+                Player pos
+6    LaMarcus Aldridge   F
+96    DeMarcus Cousins   C
+104      Stephen Curry   G
+120     Andre Drummond   C
+125       Kevin Durant   F
+152        Paul George   F
+165     Draymond Green   F
+220       LeBron James   F
+240     DeAndre Jordan   C
+262      Kawhi Leonard   F
+265     Damian Lillard   G
+272         Kyle Lowry   G
+347         Chris Paul   G
+424      Klay Thompson   G
+451  Russell Westbrook   G
+
+Number of correct All-NBA predictions: 11
+Decision threshold: 0.431
+Classifier F1 score: 0.733
