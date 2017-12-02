@@ -1,6 +1,6 @@
 # analysing_nba_stats
-Exploratory data analysis of NBA player stats using python. This process will lead towards building a logistic regression model for predicting whether or not a player is going to receive an award based on their stats for the season.
+Exploratory data analysis of NBA player stats using python and predicting All-NBA Teams for the 2015–16 and 2016–17 seasons using logistic regression, support vector classifier, and random forest methods.
 
-The data was downloaded from Open Source Sports at http://www.opensourcesports.com/basketball/. Currently, only data from basketball_master.csv, basketball_players.csv and basketball_awards_players.csv have been used. No team statistics have been included in the analysis at this point.
+The data was downloaded from Open Source Sports at http://www.opensourcesports.com/basketball/.
 
 Author: Jian Wei Tan
